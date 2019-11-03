@@ -12,16 +12,21 @@ router.get('/', function(req, res, next) {
 
 router.post('/execute', async(req,res)=>{
    //bytes32[] memory _signatureParams, uint8 _v
-  let signatureHash = req.body.signatureHash;
+  let signatureHash = req.body.signature//req.body.signatureHash;
   let dataParams = req.body.data;
   //TODO - comment for production
 
   let to = req.body.to;
   let amount = req.body.amount
-  let v = req.body.v
-  let r = req.body.r
-  let s = req.body.s
+  // let v = req.body.v
+  // let r = req.body.r
+  // let s = req.body.s
   let gas = req.body.gas
+ let signature = (req.body.signature).slice(2); //remove 0x
+const r = '0x' + signature.slice(0, 64)
+const s = '0x' + signature.slice(64, 128)
+const v = '0x' + signature.slice(128, 130)
+
   //let salt = _salt;
   let chain = req.body.chain //matic/main
   let signatureValidity = req.body.signatureValidity || 1
@@ -48,9 +53,10 @@ router.post('/execute', async(req,res)=>{
       res.send({status: 'fail', reason: 'invalid_chain-identifier', message:''})
       return
   }
-  let userwalletAddress = req.body.walletAddress || await getWalletAddress(signatureHash, r,s,v,providerUrl)
   let web3 = new Web3(new Web3.providers.HttpProvider(providerUrl))
+  let userwalletAddress = req.body.walletAddress || await getWalletAddress(signatureHash, r,s,v,providerUrl)
   let walletContractInstance = new web3.eth.Contract(walletContractABI, userwalletAddress)
+  v = web3.utils.toHex(v)
   let trans = await walletContractInstance.methods.execute(to, amount, dataParams, gas, [signatureHash, r, s], v,signatureValidity).send({from: wallet[0].address,
     gas:await web3.utils.toHex("8000000") }).then(async hash=>{
       console.log(hash)
