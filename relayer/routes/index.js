@@ -22,9 +22,10 @@ router.post('/execute', async(req,res)=>{
   let r = req.body.r
   let s = req.body.s
   let gas = req.body.gas
-  let salt = _salt;
+  //let salt = _salt;
   let chain = req.body.chain //matic/main
-  let userwalletAddress = req.body.walletAddress
+  let signatureValidity = req.body.signatureValidity || 1
+  
   let providerUrl
 
   if((gas ||  v ||r || s || signatureHash || to || amount) == undefined) {
@@ -47,10 +48,10 @@ router.post('/execute', async(req,res)=>{
       res.send({status: 'fail', reason: 'invalid_chain-identifier', message:''})
       return
   }
-  
+  let userwalletAddress = req.body.walletAddress || await getWalletAddress(signatureHash, r,s,v,providerUrl)
   let web3 = new Web3(new Web3.providers.HttpProvider(providerUrl))
   let walletContractInstance = new web3.eth.Contract(walletContractABI, userwalletAddress)
-  let trans = await walletContractInstance.methods.execute(to, amount, dataParams, gas, [signatureHash, r, s], v).send({from: wallet[0].address,
+  let trans = await walletContractInstance.methods.execute(to, amount, dataParams, gas, [signatureHash, r, s], v,signatureValidity).send({from: wallet[0].address,
     gas:await web3.utils.toHex("8000000") }).then(async hash=>{
       console.log(hash)
       res.send({status: 'success', reason: '', message:hash})

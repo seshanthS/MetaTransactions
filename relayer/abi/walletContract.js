@@ -57,9 +57,9 @@ module.exports = {
                 },
                 {
                     "indexed": false,
-                    "internalType": "bool",
+                    "internalType": "uint256",
                     "name": "_status",
-                    "type": "bool"
+                    "type": "uint256"
                 }
             ],
             "name": "metaTxExecuted",
@@ -102,18 +102,38 @@ module.exports = {
                     "internalType": "uint8",
                     "name": "_v",
                     "type": "uint8"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_signatureValidityInMinutes",
+                    "type": "uint256"
                 }
             ],
             "name": "execute",
             "outputs": [
                 {
-                    "internalType": "bool",
+                    "internalType": "uint256",
                     "name": "_status",
-                    "type": "bool"
+                    "type": "uint256"
                 }
             ],
             "payable": false,
             "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "getNonce",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
             "type": "function"
         },
         {
