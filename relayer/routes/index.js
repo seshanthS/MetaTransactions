@@ -11,8 +11,9 @@ router.get('/', function(req, res, next) {
 });
 
 router.post('/execute', async(req,res)=>{
+  console.log('request_received', req.body)
    //bytes32[] memory _signatureParams, uint8 _v
-  let signatureHash = req.body.signature//req.body.signatureHash;
+  let signatureHash = req.body.messageHash//req.body.signatureHash;
   let dataParams = req.body.data;
   //TODO - comment for production
 

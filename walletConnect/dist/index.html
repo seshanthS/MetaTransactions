@@ -9,6 +9,16 @@
             async function test(){
                 await sdk.enable();
                 let signatureData = await sdk.sign("test")
+                await sdk.send({
+                    messageHash: signatureData.messageHash,
+                    data: "",
+                    to: "", 
+                    amount: 0, //0 incase of contract call 
+                    gas: "",
+                    chain: "mainnet", 
+                    signatureValidity: 1,
+                    signature: signatureData.signature
+                })
                 console.log(signatureData)
             }
             test();
