@@ -89,7 +89,7 @@ let sdk ={
         let response = request.post(options, function(err,resp,body){
             console.log(err,resp)
         }) */
-        console.log(response);
+        
     },
 
     listener: walletConnector._eventManager
