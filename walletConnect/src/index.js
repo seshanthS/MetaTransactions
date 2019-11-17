@@ -19,6 +19,8 @@ let sdk ={
                 WalletConnectQRCodeModal.open(uri,()=>{
                     console.log("close")
                 }, false)
+            }else{
+                resolve("connected")
             }
             walletConnector.on('connect', async(err, payload)=>{
                 if (err) {

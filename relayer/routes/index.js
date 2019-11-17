@@ -23,10 +23,11 @@ router.post('/execute', async(req,res)=>{
   // let r = req.body.r
   // let s = req.body.s
   let gas = req.body.gas
- let signature = (req.body.signature).slice(2); //remove 0x
-const r = '0x' + signature.slice(0, 64)
-const s = '0x' + signature.slice(64, 128)
-const v = '0x' + signature.slice(128, 130)
+  let signature = (req.body.signature).slice(2); //remove 0x
+  const r = '0x' + signature.slice(0, 64)
+  const s = '0x' + signature.slice(64, 128)
+  const v = '0x' + signature.slice(128, 130)
+//v = web3.utils.toHex(v)
 
   //let salt = _salt;
   let chain = req.body.chain //matic/main
@@ -40,7 +41,7 @@ const v = '0x' + signature.slice(128, 130)
   if(dataParams == undefined){
     dataParams = '0x'
   }
-
+  chain = "testMatic" // remove it - added for testing
   switch(chain){
     case 'alphaMatic':
       providerUrl = config.networks.alphaMatic.rpc
@@ -50,19 +51,31 @@ const v = '0x' + signature.slice(128, 130)
       break;
     case 'mainnet':
       providerUrl = config.networks.mainnet.rpc
+      break;
     default:
       res.send({status: 'fail', reason: 'invalid_chain-identifier', message:''})
       return
   }
-  let web3 = new Web3(new Web3.providers.HttpProvider(providerUrl))
-  let userwalletAddress = req.body.walletAddress || await getWalletAddress(signatureHash, r,s,v,providerUrl)
-  let walletContractInstance = new web3.eth.Contract(walletContractABI, userwalletAddress)
-  v = web3.utils.toHex(v)
-  let trans = await walletContractInstance.methods.execute(to, amount, dataParams, gas, [signatureHash, r, s], v,signatureValidity).send({from: wallet[0].address,
-    gas:await web3.utils.toHex("8000000") }).then(async hash=>{
-      console.log(hash)
-      res.send({status: 'success', reason: '', message:hash})
-    })
+  try{
+    let web3 = new Web3(new Web3.providers.HttpProvider(providerUrl))
+
+    let userwalletAddress = req.body.walletAddress || await getWalletAddress(signatureHash, r,s,v,providerUrl)
+
+    let walletContractInstance = new web3.eth.Contract(walletContractABI, userwalletAddress)
+
+    let wallet = await web3.eth.accounts.wallet.create(0)
+    await wallet.add(config.privateKey)
+    let trans = await walletContractInstance.methods.execute(to, amount, dataParams, gas, [signatureHash, r, s], v,signatureValidity)
+    .send({from: wallet[0].address,
+      gas:await web3.utils.toHex("8000000") }).then(async hash=>{
+        console.log(hash)
+        res.send({status: 'success', reason: '', message:hash})
+      })
+  }catch(error){
+    console.log(error)
+    res.send({status: 'fail', reason: error, message:''})
+  }
+  
   /* let rawTx = {
     from: config.address,
     to: to,
@@ -105,6 +118,7 @@ router.post('/register', async(req,res)=>{
       break;
     case 'mainnet':
       providerUrl = config.networks.mainnet.rpc
+      break;
     default:
       res.send({status: 'fail', reason: 'invalid_chain-identifier', message:''})
       return
@@ -200,6 +214,11 @@ router.get('/sign', async(req,res)=>{
   let addr = await getWalletAddressOffChain(1)
   console.log(addr);
   res.send(result)
+})
+
+router.post('/getByteCode', async(req,res)=>{
+  let input = req.body;
+  res.send(await getByteCode(input.hash, input.r, input.s, input.v))
 })
 
 async function getWalletAddress(sigHash, r, s, v, providerUrl){
